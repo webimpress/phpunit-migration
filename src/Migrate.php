@@ -175,6 +175,12 @@ class Migrate extends Command
         $content = str_replace('PHPUnit_Framework_TestCase', 'PHPUnit\Framework\TestCase', $content);
 
         $content = preg_replace(
+            '/extends\s+PHPUnit\\\\Framework\\\\TestCase/',
+            'extends TestCase',
+            $content
+        );
+
+        $content = preg_replace(
             '/(use\s+[^;{]+?\\\\([^\s;]+?))\s+as\s+\2\s*;/i',
             '\\1;',
             $content
