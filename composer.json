@@ -1,0 +1,16 @@
+{
+    "name": "webimpress/phpunit-migration",
+    "description": "Migrate your tests to newest PHPUnit version",
+    "require": {
+        "php": "^7.1",
+        "symfony/console": "^4.0",
+        "composer/semver": "^1.4.2"
+    },
+    "license": "BSD-2-Clause",
+    "bin": ["bin/phpunit-migration"],
+    "autoload": {
+        "psr-4": {
+            "Webimpress\\PHPUnitMigration\\": "src/"
+        }
+    }
+}

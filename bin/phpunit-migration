@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+
+namespace Webimpress\PHPUnitMigration;
+
+use Symfony\Component\Console\Application;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$application = new Application('phpunit-migration');
+$application->addCommands([
+    new Migrate('migrate'),
+]);
+$application->run();
