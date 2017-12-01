@@ -5,7 +5,12 @@ namespace Webimpress\PHPUnitMigration;
 use Composer\Semver\Comparator;
 use Composer\Semver\Semver;
 use Composer\Semver\VersionParser;
+use Generator;
 use InvalidArgumentException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RecursiveRegexIterator;
+use RegexIterator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,6 +23,8 @@ class Migrate extends Command
     private $versions = [];
 
     private $versionsJson;
+
+    private $content = [];
 
     protected function configure()
     {
@@ -57,7 +64,7 @@ class Migrate extends Command
         }
 
         if (! $php = $this->getPHPVersion()) {
-            $output->writeln('<error>Cannot detec PHP version in your composer.json</error>');
+            $output->writeln('<error>Cannot detect PHP version in your composer.json</error>');
             return 1;
         }
 
@@ -66,6 +73,38 @@ class Migrate extends Command
 
         $from = explode('.', $minPHPUnitVersion)[0];
         $to = explode('.', $newPHPUnitVersions[0])[0];
+
+        if ($from >= $to) {
+            $output->writeln('You are ');
+        }
+
+        foreach ($this->fileIterator() as $file) {
+            $content = file_get_contents($file);
+            if ($to >= 5) {
+                $this->replaceTestCase($content);
+            }
+
+            file_put_contents($file, $content);
+        }
+
+        $composer = json_decode(file_get_contents('composer.json'), true);
+        foreach ($composer['require-dev'] as $key => &$value) {
+            if (strtolower($key) === 'phpunit/phpunit') {
+                $value = '^' . implode(' || ^', $newPHPUnitVersions);
+                break;
+            }
+        }
+
+        file_put_contents(
+            'composer.json',
+            json_encode(
+                $composer,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+            ) . PHP_EOL
+        );
+
+        exec('composer update phpunit/phpunit --with-dependencies');
+
 
         $output->writeln('PHP Version: ' . $php);
         $output->writeln('PHPUnit Version: ' . $phpunit . ' : ' . $from . '->' . $to);
@@ -84,11 +123,75 @@ class Migrate extends Command
         // - import PHPUnit\Framework\TestCase
         // - remove alias if there is TestCase
         //
+    }
+
+    private function fileIterator() : Generator
+    {
+        $json = $this->getComposerJson();
+
+        $autoload = $json['autoload-dev'] ?? [];
+
+        foreach ($autoload as $type => $files) {
+            if ($type === 'files') {
+                $files = (array) $files;
+                foreach ($files as $file) {
+                    yield $file;
+                }
+            }
+
+            if ($type === 'classmap') {
+                $files = (array) $files;
+                foreach ($files as $file) {
+                    if (is_dir($file)) {
+                        yield from $this->files($file);
+                    } elseif (is_file($file)) {
+                        yield $file;
+                    }
+                }
+            }
+
+            if ($type === 'psr-0' || $type === 'psr-4') {
+                foreach ($files as $namespace => $paths) {
+                    $paths = (array) $paths;
+                    foreach ($paths as $path) {
+                        yield from $this->files($path);
+                    }
+                }
+            }
+        }
+    }
+
+    private function files(string $path) : Generator
+    {
+        $dir = new RecursiveDirectoryIterator($path);
+        $iterator = new RecursiveIteratorIterator($dir);
+        $regex = new RegexIterator($iterator, '/^.+\.php$/', RecursiveRegexIterator::GET_MATCH);
+
+        foreach ($regex as $file) {
+            yield $file[0];
+        }
+    }
+
+    private function replaceTestCase(&$content)
+    {
+        $content = str_replace('PHPUnit_Framework_TestCase', 'PHPUnit\Framework\TestCase', $content);
+
+        $content = preg_replace(
+            '/(use\s+[^;{]+?\\\\([^\s;]+?))\s+as\s+\2\s*;/i',
+            '\\1;',
+            $content
+        );
+
+
 
     }
 
-    private function getPHP5Version(?string $php) : ?string
+    private function getPHP5Version(string $php) : ?string
     {
+        if (Semver::satisfies('5.5', $php)) {
+            throw new \Exception('Unsupported PHP Version');
+        }
+
         if (Semver::satisfies('5.6', $php)) {
             return '5.6';
         }
@@ -96,7 +199,7 @@ class Migrate extends Command
         return null;
     }
 
-    private function getPHP7Version(?string $php) : ?string
+    private function getPHP7Version(string $php) : ?string
     {
         if (Semver::satisfies('7.0', $php)) {
             return '7.0';
