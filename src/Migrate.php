@@ -24,8 +24,6 @@ class Migrate extends Command
 
     private $versionsJson;
 
-    private $content = [];
-
     protected function configure()
     {
         $this
@@ -182,8 +180,99 @@ class Migrate extends Command
             $content
         );
 
+        if (preg_match_all(
+            '/->\s*setExpectedException\s*\(.+?\)\s*;/is',
+            $content,
+            $matches
+        )) {
+            foreach ($matches[0] as $ex) {
+                $p = $this->splitException($ex);
 
+                $replacement = sprintf('->expectException(%s);', $p['name']);
+                if ($p['message']) {
+                    $replacement .= "\n" . '        ' . sprintf('$this->expectExceptionMessage(%s);', $p['message']);
+                }
+                if ($p['code']) {
+                    $replacement .= "\n" . '        ' . sprintf('$this->expectExceptionCode(%s);', $p['code']);
+                }
 
+                $content = str_replace($ex, $replacement, $content);
+            }
+        }
+
+        // @expectedException
+        // @expectedExceptionMessage
+        // @expectedCode
+    }
+
+    private function splitException($ex)
+    {
+        $ex = '<?php $this' . $ex;
+
+        $tokens = token_get_all($ex);
+
+        $started = false;
+        $open = null;
+        $close = null;
+        $stack = [];
+
+        $map = ['[' => ']', '{' => '}', '(' => ')'];
+        $params = [];
+        $param = '';
+
+        // todo: check long array notation
+        foreach ($tokens as $token) {
+            $content = is_array($token) ? $token[1] : $token;
+            if (! $started) {
+                if (strtolower($content) === 'setexpectedexception') {
+                    $started = true;
+                }
+                continue;
+            }
+
+            if (! $open) {
+                if ($content === '(') {
+                    $open = true;
+                }
+                continue;
+            }
+
+            if (! $stack && is_array($token) && $token[0] === T_WHITESPACE) {
+                continue;
+            }
+
+            if (in_array($content, ['[', ']', '{', '}', '(', ')'], true)) {
+                if (in_array($content, ['[', '{', '('], true)) {
+                    $stack[] = $content;
+                } else {
+                    if (! $stack && $content === ')') {
+                        // $close = true;
+                        $params[] = $param;
+                        break;
+                    } else {
+                        $last = end($content);
+
+                        if ($map[$content] === $last) {
+                            array_pop($stack);
+                        }
+                    }
+                }
+            }
+
+            if (! $stack && $content === ',') {
+                $params[] = $param;
+                $param = '';
+                continue;
+            }
+
+            $param .= $content;
+        }
+
+        return [
+            'name' => $params[0] ?? null,
+            'message' => $params[1] ?? null,
+            'code' => $params[2] ?? null,
+        ];
     }
 
     private function getPHP5Version(string $php) : ?string
