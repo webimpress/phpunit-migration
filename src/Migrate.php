@@ -72,10 +72,6 @@ class Migrate extends Command
         $from = explode('.', $minPHPUnitVersion)[0];
         $to = explode('.', $newPHPUnitVersions[0])[0];
 
-        if ($from >= $to) {
-            $output->writeln('You are ');
-        }
-
         foreach ($this->fileIterator() as $file) {
             $content = file_get_contents($file);
             if ($to >= 5) {
@@ -108,19 +104,8 @@ class Migrate extends Command
         $output->writeln('PHPUnit Version: ' . $phpunit . ' : ' . $from . '->' . $to);
         $output->writeln('Versions: ' . '^' . implode(' || ^', $newPHPUnitVersions));
 
-
-        // check current PHPUnit version in composer.json
-        // check current PHP version supported in composer.json
-
-        // decide what PHPUnit version to use
-        // check if we can get the latest version from packagist?
-        // https://packagist.org/p/phpunit/phpunit.json
-
-        // loop through all files (autoload-dev section from composer?)
-        // - replace PHPUnit_Framework_TestCase
-        // - import PHPUnit\Framework\TestCase
-        // - remove alias if there is TestCase
-        //
+        // replace getMock -> ... ?
+        // replace $this->assert* to self::assert*
     }
 
     private function fileIterator() : Generator
@@ -198,7 +183,7 @@ class Migrate extends Command
             $matches
         )) {
             foreach ($matches[0] as $ex) {
-                $p = $this->splitException($ex);
+                $p = $this->getParams('setExpectedException', '$this' . $ex, ['name', 'message', 'code']);
 
                 $replacement = sprintf('->expectException(%s);', $p['name']);
                 if ($p['message']) {
@@ -212,14 +197,43 @@ class Migrate extends Command
             }
         }
 
+        if (preg_match_all(
+            '/\$this\s*->\s*getMock\s*\(.+?\)\s*;/is',
+            $content,
+            $matches
+        )) {
+            foreach ($matches[0] as $m) {
+                $p = $this->getParams(
+                    'getMock',
+                    $m,
+                    [
+                        'class',
+                        'methods', // []
+                        'args', // []
+                        'name', // ''
+                        'callOriginConstructor', // true
+                        'callOriginalClone', // true
+                        'callAutoload', // true
+                        'cloneArguments', // false
+                        'callOriginalMethods', // false
+                        'proxyTarget', // null
+                    ]
+                );
+
+                $replacement = sprintf('$this->getMock(%s)', $p['class']);
+
+                // if ($p['methods'])
+            }
+        }
+
         // @expectedException
         // @expectedExceptionMessage
         // @expectedCode
     }
 
-    private function splitException($ex)
+    private function getParams(string $name, string $ex, array $keys) : array
     {
-        $ex = '<?php $this' . $ex;
+        $ex = '<?php ' . $ex;
 
         $tokens = token_get_all($ex);
 
@@ -228,7 +242,7 @@ class Migrate extends Command
         $close = null;
         $stack = [];
 
-        $map = ['[' => ']', '{' => '}', '(' => ')'];
+        $map = [']' => '[', '}' => '{', ')' => '('];
         $params = [];
         $param = '';
 
@@ -236,7 +250,7 @@ class Migrate extends Command
         foreach ($tokens as $token) {
             $content = is_array($token) ? $token[1] : $token;
             if (! $started) {
-                if (strtolower($content) === 'setexpectedexception') {
+                if (strtolower($content) === strtolower($name)) {
                     $started = true;
                 }
                 continue;
@@ -261,12 +275,12 @@ class Migrate extends Command
                         // $close = true;
                         $params[] = $param;
                         break;
-                    } else {
-                        $last = end($content);
+                    }
 
-                        if ($map[$content] === $last) {
-                            array_pop($stack);
-                        }
+                    $last = end($stack);
+
+                    if ($map[$content] === $last) {
+                        array_pop($stack);
                     }
                 }
             }
@@ -280,11 +294,14 @@ class Migrate extends Command
             $param .= $content;
         }
 
-        return [
-            'name' => $params[0] ?? null,
-            'message' => $params[1] ?? null,
-            'code' => $params[2] ?? null,
-        ];
+        $len = count($params);
+        $keysLen = count($keys);
+        if ($len < $keysLen) {
+            $fill = array_fill($len, $keysLen - $len, null);
+            $params += $fill;
+        }
+
+        return array_combine($keys, $params);
     }
 
     private function getPHP5Version(string $php) : ?string
