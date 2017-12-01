@@ -181,6 +181,12 @@ class Migrate extends Command
         );
 
         $content = preg_replace(
+            '/((abstract\s+)?class\s+.*?extends\s+)\\\\PHPUnit\\\\Framework\\\\TestCase/',
+            'use PHPUnit\Framework\TestCase;' . "\n\n" . '\\1' . 'TestCase',
+            $content
+        );
+
+        $content = preg_replace(
             '/(use\s+[^;{]+?\\\\([^\s;]+?))\s+as\s+\2\s*;/i',
             '\\1;',
             $content
