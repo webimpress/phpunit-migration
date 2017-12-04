@@ -271,6 +271,26 @@ class Migrate extends Command
             }
         }
 
+        $content = preg_replace('/\$this\s*->\s*assert/', 'self::assert', $content);
+
+        $content = preg_replace(
+            '/(public|protected)\s+function\s+setUp\s*\(/i',
+            'protected function setUp(',
+            $content
+        );
+
+        $content = preg_replace(
+            '/(public|protected)\s+function\s+tearDown\s*\(/i',
+            'protected function tearDown(',
+            $content
+        );
+
+        $content = preg_replace(
+            '/@covers\s+([a-z])/i',
+            '@covers \\\\$1',
+            $content
+        );
+
         // @expectedException
         // @expectedExceptionMessage
         // @expectedCode
