@@ -198,11 +198,11 @@ class Migrate extends Command
         }
 
         if (preg_match_all(
-            '/\$this\s*->\s*getMock\s*\(.+?\)\s*;/is',
+            '/\$this\s*->\s*getMock\s*\(.+?\)(\s*(\)|;))/is',
             $content,
             $matches
         )) {
-            foreach ($matches[0] as $m) {
+            foreach ($matches[0] as $k => $m) {
                 $p = $this->getParams(
                     'getMock',
                     $m,
@@ -220,9 +220,54 @@ class Migrate extends Command
                     ]
                 );
 
-                $replacement = sprintf('$this->getMock(%s)', $p['class']);
+                $replacement = sprintf('$this->getMockBuilder(%s)', $p['class']);
+                if ($p['methods']) {
+                    if (strtolower($p['methods']) === 'null') {
+                        $replacement .= "\n" . '            ->setMethods()';
+                    } elseif (! in_array(strtolower($p['methods']), ['[]', 'array()'], true)) {
+                        $replacement .= "\n" . sprintf('            ->setMethods(%s)', $p['methods']);
+                    }
+                }
 
-                // if ($p['methods'])
+                if ($p['args'] && $p['args'] !== '[]' && strtolower($p['args']) !== 'array()') {
+                    $replacement .= "\n" . sprintf('            ->setConstructorArgs(%s)', $p['args']);
+                }
+
+                if ($p['name'] && $p['name'] !== '""' && $p['name'] !== "''") {
+                    $replacement .= "\n" . sprintf('            ->setMockClassName(%s)', $p['name']);
+                }
+
+                if ($p['callOriginConstructor'] && strtolower($p['callOriginConstructor']) !== 'true') {
+                    $replacement .= "\n" . '            ->disableOriginalConstructor()';
+                }
+
+                if ($p['callOriginalClone'] && strtolower($p['callOriginalClone']) !== 'true') {
+                    $replacement .= "\n" . '            ->disableOriginalClone()';
+                }
+
+                if ($p['callAutoload'] && strtolower($p['callAutoload']) !== 'true') {
+                    $replacement .= "\n" . '            ->disableAutoload()';
+                }
+
+                if ($p['cloneArguments'] && strtolower($p['cloneArguments']) !== 'false') {
+                    $replacement .= "\n" . '            ->enableArgumentCloning()';
+                }
+
+                if ($p['callOriginalMethods'] && strtolower($p['callOriginalMethods']) !== 'false') {
+                    $replacement .= "\n" . '            ->enableProxyingToOriginalMethods()';
+                }
+
+                if ($p['proxyTarget'] && strtolower($p['proxyTarget']) !== 'null') {
+                    $replacement .= "\n" . sprintf('            ->setProxyTarget(%s)', $p['proxyTarget']);
+                }
+
+                $replacement .= "\n" . '            ->getMock()' . $matches[1][$k];
+
+                if (substr_count($replacement, "\n") === 1) {
+                    $replacement = preg_replace('/\n\s+/', '', $replacement);
+                }
+
+                $content = str_replace($m, $replacement, $content);
             }
         }
 
