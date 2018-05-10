@@ -24,6 +24,8 @@ class Migrate extends Command
 
     private $versionsJson;
 
+    private $php7max = 7.2;
+
     protected function configure()
     {
         $this
@@ -384,16 +386,12 @@ class Migrate extends Command
 
     private function getPHP7Version(string $php) : ?string
     {
-        if (Semver::satisfies('7.0', $php)) {
-            return '7.0';
-        }
-
-        if (Semver::satisfies('7.1', $php)) {
-            return '7.1';
-        }
-
-        if (Semver::satisfies('7.2', $php)) {
-            return '7.2';
+        $max = round($this->php7max * 10);
+        for ($i = 70; $i <= $max; ++$i) {
+            $v = sprintf('%.1f', 0.1 * $i);
+            if (Semver::satisfies($v, $php)) {
+                return $v;
+            }
         }
 
         return null;
@@ -428,7 +426,8 @@ class Migrate extends Command
         $versions = $this->getPHPUnitVersions();
 
         $php5 = $this->getPHP5Version($php);
-        $php7 = $this->getPHP7Version($php);
+        $php7min = $this->getPHP7Version($php);
+        $php7 = $php7min ? $this->php7max : null;
 
         $result = [];
         foreach ($versions as $version) {
@@ -436,7 +435,10 @@ class Migrate extends Command
 
             if ($php7 && Semver::satisfies($php7, $phpVer)) {
                 $result[] = preg_replace('/\.0$/', '', $version);
-                $php7 = null;
+                $php7 = sprintf('%.1f', $php7 - 0.1);
+                if ($php7 < $php7min) {
+                    $php7 = null;
+                }
             }
 
             if ($php5 && Semver::satisfies($php5, $phpVer)) {
@@ -449,7 +451,14 @@ class Migrate extends Command
             }
         }
 
-        return array_reverse($result);
+        $result = array_reverse($result);
+        foreach ($result as $k => $ver) {
+            if (isset($result[$k + 1]) && strpos($result[$k + 1], strstr($ver, '.', true)) === 0) {
+                unset($result[$k]);
+            }
+        }
+
+        return $result;
     }
 
     private function findMinimumPHPUnitVersion(string $current) : ?string
