@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/webimpress/phpunit-migration.svg?branch=master)](https://travis-ci.com/webimpress/phpunit-migration)
+[![Coverage Status](https://coveralls.io/repos/github/webimpress/phpunit-migration/badge.svg?branch=master)](https://coveralls.io/github/webimpress/phpunit-migration?branch=master)
+
 # PHPUnit migration tool
 
 Migrate project to the newest version of PHPUnit.

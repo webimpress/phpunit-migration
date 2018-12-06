@@ -1,0 +1,57 @@
+<?php
+
+namespace Webimpress\PHPUnitMigration\Migration\TestAsset;
+
+use PHPUnit\Framework\TestCase;
+
+class GetMockMigration extends TestCase
+{
+    public function testWithAllParametersDefaultValues()
+    {
+        $mock = $this->getMockBuilder(self::class)->getMock();
+    }
+
+    public function testWithNonDefaultValues()
+    {
+        $mock = $this->getMockBuilder(self::class)
+            ->setMethods()
+            ->setConstructorArgs(['arg1', 'arg2'])
+            ->setMockClassName('MockClassName')
+            ->disableOriginalConstructor()
+            ->disableOriginalClone()
+            ->disableAutoload()
+            ->enableArgumentCloning()
+            ->enableProxyingToOriginalMethods()
+            ->setProxyTarget(new \DateTime())
+            ->getMock();
+    }
+
+    public function testWithRequiredParam()
+    {
+        $mock = $this->getMockBuilder(self::class)->getMock();
+    }
+
+    public function testWithDisabledConstructor()
+    {
+        $mock = $this->getMockBuilder(self::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+    }
+
+    public function testWithAllMethods()
+    {
+        $mock = $this->getMockBuilder(self::class)
+            ->setMethods()
+            ->getMock();
+    }
+
+    public function testWithSomeMethods()
+    {
+        $this->call(
+            $this->getMockBuilder(self::class)
+            ->setMethods(['method1', 'method2'])
+            ->disableOriginalConstructor()
+            ->getMock()
+        );
+    }
+}

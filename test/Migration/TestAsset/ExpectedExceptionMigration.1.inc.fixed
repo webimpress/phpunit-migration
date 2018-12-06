@@ -1,0 +1,44 @@
+<?php
+
+namespace WebimpressTest\PHPUnitMigration\Migration\TestAsset;
+
+use PHPUnit\Framework\TestCase;
+
+class ExpectedExceptionMigration extends TestCase
+{
+    public function testWithThreeParams()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Message 3');
+        $this->expectExceptionCode(123);
+    }
+
+    public function testWithTwoParams()
+    {
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('Message 2');
+    }
+
+    public function testWithOneParam()
+    {
+        $this->expectException(\ErrorException::class);
+    }
+
+    public function testRegexpWithThreeParams()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageRegExp('/[a-z]+ $/');
+        $this->expectExceptionCode(456);
+    }
+
+    public function testRegexpWithTwoParams()
+    {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessageRegExp('#[0-9]{2,}#i');
+    }
+
+    public function testRegexpWithOneParam()
+    {
+        $this->expectException(\RuntimeException::class);
+    }
+}

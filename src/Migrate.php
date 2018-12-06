@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Webimpress\PHPUnitMigration;
 
 use Composer\Semver\Comparator;
@@ -11,19 +13,56 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Webimpress\PHPUnitMigration\Migration\CoversTagMigration;
+use Webimpress\PHPUnitMigration\Migration\ExpectedExceptionMigration;
+use Webimpress\PHPUnitMigration\Migration\GetMockMigration;
+use Webimpress\PHPUnitMigration\Migration\SetUpMigration;
+use Webimpress\PHPUnitMigration\Migration\TearDownMigration;
+use Webimpress\PHPUnitMigration\Migration\TestCaseMigration;
+
+use function array_reverse;
+use function exec;
+use function explode;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
+use function getcwd;
+use function implode;
+use function is_array;
+use function is_dir;
+use function is_file;
+use function json_decode;
+use function json_encode;
+use function preg_replace;
+use function realpath;
+use function round;
+use function sprintf;
+use function strpos;
+use function strstr;
+use function strtolower;
+use function usort;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_SLASHES;
+use const PHP_EOL;
 
 class Migrate extends Command
 {
+    /** @var array */
     private $composer;
 
+    /** @var array array */
     private $versions = [];
 
+    /** @var array */
     private $versionsJson;
 
+    /** @var float */
     private $php7max = 7.2;
 
     protected function configure()
@@ -38,6 +77,10 @@ class Migrate extends Command
                 realpath(getcwd())
             );
     }
+
+    /**
+     * @throws InvalidArgumentException
+     */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         parent::initialize($input, $output);
@@ -56,6 +99,9 @@ class Migrate extends Command
         }
     }
 
+    /**
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if (! $phpunit = $this->getPHPUnitVersion()) {
@@ -101,13 +147,14 @@ class Migrate extends Command
 
         exec('composer update phpunit/phpunit --with-dependencies');
 
-
         $output->writeln('PHP Version: ' . $php);
         $output->writeln('PHPUnit Version: ' . $phpunit . ' : ' . $from . '->' . $to);
-        $output->writeln('Versions: ' . '^' . implode(' || ^', $newPHPUnitVersions));
+        $output->writeln('Versions: ^' . implode(' || ^', $newPHPUnitVersions));
 
         // replace getMock -> ... ?
         // replace $this->assert* to self::assert*
+
+        return 0;
     }
 
     private function fileIterator() : Generator
@@ -157,224 +204,40 @@ class Migrate extends Command
         }
     }
 
-    private function replaceTestCase(&$content)
+    private function replaceTestCase(string &$content) : void
     {
-        $content = str_replace('PHPUnit_Framework_TestCase', 'PHPUnit\Framework\TestCase', $content);
+        $testCaseMigration = new TestCaseMigration();
+        $content = $testCaseMigration->migrate($content);
 
-        $content = preg_replace(
-            '/extends\s+PHPUnit\\\\Framework\\\\TestCase/',
-            'extends TestCase',
-            $content
-        );
+        $expectedExceptionMigration = new ExpectedExceptionMigration();
+        $content = $expectedExceptionMigration->migrate($content);
 
-        $content = preg_replace(
-            '/((abstract\s+)?class\s+.*?extends\s+)\\\\PHPUnit\\\\Framework\\\\TestCase/',
-            'use PHPUnit\Framework\TestCase;' . "\n\n" . '\\1' . 'TestCase',
-            $content
-        );
+        $getMockMigration = new GetMockMigration();
+        $content = $getMockMigration->migrate($content);
 
-        $content = preg_replace(
-            '/(use\s+[^;{]+?\\\\([^\s;]+?))\s+as\s+\2\s*;/i',
-            '\\1;',
-            $content
-        );
+        // $content = preg_replace('/\$this\s*->\s*assert/', 'self::assert', $content);
 
-        if (preg_match_all(
-            '/->\s*setExpectedException\s*\(.+?\)\s*;/is',
-            $content,
-            $matches
-        )) {
-            foreach ($matches[0] as $ex) {
-                $p = $this->getParams('setExpectedException', '$this' . $ex, ['name', 'message', 'code']);
+        $setUpMigration = new SetUpMigration();
+        $content = $setUpMigration->migrate($content);
 
-                $replacement = sprintf('->expectException(%s);', $p['name']);
-                if ($p['message']) {
-                    $replacement .= "\n" . '        ' . sprintf('$this->expectExceptionMessage(%s);', $p['message']);
-                }
-                if ($p['code']) {
-                    $replacement .= "\n" . '        ' . sprintf('$this->expectExceptionCode(%s);', $p['code']);
-                }
+        $tearDownMigration = new TearDownMigration();
+        $content = $tearDownMigration->migrate($content);
 
-                $content = str_replace($ex, $replacement, $content);
-            }
-        }
-
-        if (preg_match_all(
-            '/\$this\s*->\s*getMock\s*\(.+?\)(\s*(\)|;))/is',
-            $content,
-            $matches
-        )) {
-            foreach ($matches[0] as $k => $m) {
-                $p = $this->getParams(
-                    'getMock',
-                    $m,
-                    [
-                        'class',
-                        'methods', // []
-                        'args', // []
-                        'name', // ''
-                        'callOriginConstructor', // true
-                        'callOriginalClone', // true
-                        'callAutoload', // true
-                        'cloneArguments', // false
-                        'callOriginalMethods', // false
-                        'proxyTarget', // null
-                    ]
-                );
-
-                $replacement = sprintf('$this->getMockBuilder(%s)', $p['class']);
-                if ($p['methods']) {
-                    if (strtolower($p['methods']) === 'null') {
-                        $replacement .= "\n" . '            ->setMethods()';
-                    } elseif (! in_array(strtolower($p['methods']), ['[]', 'array()'], true)) {
-                        $replacement .= "\n" . sprintf('            ->setMethods(%s)', $p['methods']);
-                    }
-                }
-
-                if ($p['args'] && $p['args'] !== '[]' && strtolower($p['args']) !== 'array()') {
-                    $replacement .= "\n" . sprintf('            ->setConstructorArgs(%s)', $p['args']);
-                }
-
-                if ($p['name'] && $p['name'] !== '""' && $p['name'] !== "''") {
-                    $replacement .= "\n" . sprintf('            ->setMockClassName(%s)', $p['name']);
-                }
-
-                if ($p['callOriginConstructor'] && strtolower($p['callOriginConstructor']) !== 'true') {
-                    $replacement .= "\n" . '            ->disableOriginalConstructor()';
-                }
-
-                if ($p['callOriginalClone'] && strtolower($p['callOriginalClone']) !== 'true') {
-                    $replacement .= "\n" . '            ->disableOriginalClone()';
-                }
-
-                if ($p['callAutoload'] && strtolower($p['callAutoload']) !== 'true') {
-                    $replacement .= "\n" . '            ->disableAutoload()';
-                }
-
-                if ($p['cloneArguments'] && strtolower($p['cloneArguments']) !== 'false') {
-                    $replacement .= "\n" . '            ->enableArgumentCloning()';
-                }
-
-                if ($p['callOriginalMethods'] && strtolower($p['callOriginalMethods']) !== 'false') {
-                    $replacement .= "\n" . '            ->enableProxyingToOriginalMethods()';
-                }
-
-                if ($p['proxyTarget'] && strtolower($p['proxyTarget']) !== 'null') {
-                    $replacement .= "\n" . sprintf('            ->setProxyTarget(%s)', $p['proxyTarget']);
-                }
-
-                $replacement .= "\n" . '            ->getMock()' . $matches[1][$k];
-
-                if (substr_count($replacement, "\n") === 1) {
-                    $replacement = preg_replace('/\n\s+/', '', $replacement);
-                }
-
-                $content = str_replace($m, $replacement, $content);
-            }
-        }
-
-        $content = preg_replace('/\$this\s*->\s*assert/', 'self::assert', $content);
-
-        $content = preg_replace(
-            '/(public|protected)\s+function\s+setUp\s*\(/i',
-            'protected function setUp(',
-            $content
-        );
-
-        $content = preg_replace(
-            '/(public|protected)\s+function\s+tearDown\s*\(/i',
-            'protected function tearDown(',
-            $content
-        );
-
-        $content = preg_replace(
-            '/@covers\s+([a-z])/i',
-            '@covers \\\\$1',
-            $content
-        );
+        $coversTagMigration = new CoversTagMigration();
+        $content = $coversTagMigration->migrate($content);
 
         // @expectedException
         // @expectedExceptionMessage
         // @expectedCode
     }
 
-    private function getParams(string $name, string $ex, array $keys) : array
-    {
-        $ex = '<?php ' . $ex;
-
-        $tokens = token_get_all($ex);
-
-        $started = false;
-        $open = null;
-        $close = null;
-        $stack = [];
-
-        $map = [']' => '[', '}' => '{', ')' => '('];
-        $params = [];
-        $param = '';
-
-        // todo: check long array notation
-        foreach ($tokens as $token) {
-            $content = is_array($token) ? $token[1] : $token;
-            if (! $started) {
-                if (strtolower($content) === strtolower($name)) {
-                    $started = true;
-                }
-                continue;
-            }
-
-            if (! $open) {
-                if ($content === '(') {
-                    $open = true;
-                }
-                continue;
-            }
-
-            if (! $stack && is_array($token) && $token[0] === T_WHITESPACE) {
-                continue;
-            }
-
-            if (in_array($content, ['[', ']', '{', '}', '(', ')'], true)) {
-                if (in_array($content, ['[', '{', '('], true)) {
-                    $stack[] = $content;
-                } else {
-                    if (! $stack && $content === ')') {
-                        // $close = true;
-                        $params[] = $param;
-                        break;
-                    }
-
-                    $last = end($stack);
-
-                    if ($map[$content] === $last) {
-                        array_pop($stack);
-                    }
-                }
-            }
-
-            if (! $stack && $content === ',') {
-                $params[] = $param;
-                $param = '';
-                continue;
-            }
-
-            $param .= $content;
-        }
-
-        $len = count($params);
-        $keysLen = count($keys);
-        if ($len < $keysLen) {
-            $fill = array_fill($len, $keysLen - $len, null);
-            $params += $fill;
-        }
-
-        return array_combine($keys, $params);
-    }
-
+    /**
+     * @throws RuntimeException
+     */
     private function getPHP5Version(string $php) : ?string
     {
         if (Semver::satisfies('5.5', $php)) {
-            throw new \Exception('Unsupported PHP Version');
+            throw new RuntimeException('Unsupported PHP Version');
         }
 
         if (Semver::satisfies('5.6', $php)) {
@@ -414,7 +277,7 @@ class Migrate extends Command
             $this->versions[] = $version;
         }
 
-        usort($this->versions, function($a, $b) {
+        usort($this->versions, function ($a, $b) {
             return $this->sortVersion($a, $b);
         });
 
@@ -474,7 +337,7 @@ class Migrate extends Command
         return null;
     }
 
-    private function sortVersion($a, $b) : int
+    private function sortVersion(string $a, string $b) : int
     {
         return Comparator::lessThan($a, $b) ? 1 : -1;
     }
@@ -493,7 +356,7 @@ class Migrate extends Command
         return $composer['require-dev']['phpunit/phpunit'] ?? null;
     }
 
-    private function getComposerJson()
+    private function getComposerJson() : array
     {
         if (! $this->composer) {
             $this->composer = $this->lowercaseKeys(
