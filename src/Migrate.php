@@ -78,6 +78,12 @@ class Migrate extends Command
                 InputArgument::OPTIONAL,
                 'Path to the project to migrate PHPUnit',
                 realpath(getcwd())
+            )
+            ->addArgument(
+                'iterations',
+                InputArgument::OPTIONAL,
+                'Number of iterations each migration will be executed',
+                1
             );
     }
 
@@ -100,6 +106,11 @@ class Migrate extends Command
                 $path
             ));
         }
+
+        $iterations = (int) $input->getArgument('iterations');
+        if ($iterations < 1) {
+            throw new InvalidArgumentException('Number of iterations cannot be lower than 1');
+        }
     }
 
     /**
@@ -117,6 +128,8 @@ class Migrate extends Command
             return 1;
         }
 
+        $iterations = (int) $input->getArgument('iterations');
+
         $minPHPUnitVersion = $this->findMinimumPHPUnitVersion($phpunit);
         $newPHPUnitVersions = $this->findPHPUnitVersion($php);
 
@@ -124,12 +137,10 @@ class Migrate extends Command
         $to = explode('.', $newPHPUnitVersions[0])[0];
 
         foreach ($this->fileIterator() as $file) {
-            $content = file_get_contents($file);
             if ($to >= 5) {
-                $this->replaceTestCase($content, $newPHPUnitVersions[0]);
+                $content = $this->replaceTestCase($file, $newPHPUnitVersions[0], $iterations);
+                file_put_contents($file, $content);
             }
-
-            file_put_contents($file, $content);
         }
 
         $composer = json_decode(file_get_contents('composer.json'), true);
@@ -207,8 +218,10 @@ class Migrate extends Command
         }
     }
 
-    private function replaceTestCase(string &$content, string $phpUnitVersion) : void
+    private function replaceTestCase(string $fileName, string $phpUnitVersion, int $iterations) : string
     {
+        $content = file_get_contents($fileName);
+
         $migrations = [
             new AssertInternalTypeMigration(),
             new CoversTagMigration(),
@@ -219,12 +232,10 @@ class Migrate extends Command
             new TestCaseMigration(),
         ];
 
-        $iterations = 3;
-
-        while (--$iterations) {
+        for ($i = 1; $i <= $iterations; ++$i) {
             foreach ($migrations as $migration) {
                 if (version_compare($phpUnitVersion, $migration::PHPUNIT_VERSION_REQUIRED) >= 0) {
-                    echo $iterations . ' Run migration ' . get_class($migration), PHP_EOL;
+                    echo sprintf('[%d] Run migration %s on file %s', $i, get_class($migration), $fileName), PHP_EOL;
                     $content = $migration->migrate($content);
                 }
             }
@@ -235,6 +246,8 @@ class Migrate extends Command
         // @expectedException
         // @expectedExceptionMessage
         // @expectedCode
+
+        return $content;
     }
 
     /**
