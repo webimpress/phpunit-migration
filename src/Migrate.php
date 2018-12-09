@@ -18,6 +18,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Webimpress\PHPUnitMigration\Migration\AssertInternalTypeMigration;
 use Webimpress\PHPUnitMigration\Migration\CoversTagMigration;
 use Webimpress\PHPUnitMigration\Migration\ExpectedExceptionMigration;
 use Webimpress\PHPUnitMigration\Migration\GetMockMigration;
@@ -31,6 +32,7 @@ use function explode;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
+use function get_class;
 use function getcwd;
 use function implode;
 use function is_array;
@@ -46,6 +48,7 @@ use function strpos;
 use function strstr;
 use function strtolower;
 use function usort;
+use function version_compare;
 
 use const JSON_PRETTY_PRINT;
 use const JSON_UNESCAPED_SLASHES;
@@ -123,7 +126,7 @@ class Migrate extends Command
         foreach ($this->fileIterator() as $file) {
             $content = file_get_contents($file);
             if ($to >= 5) {
-                $this->replaceTestCase($content);
+                $this->replaceTestCase($content, $newPHPUnitVersions[0]);
             }
 
             file_put_contents($file, $content);
@@ -204,27 +207,30 @@ class Migrate extends Command
         }
     }
 
-    private function replaceTestCase(string &$content) : void
+    private function replaceTestCase(string &$content, string $phpUnitVersion) : void
     {
-        $testCaseMigration = new TestCaseMigration();
-        $content = $testCaseMigration->migrate($content);
+        $migrations = [
+            new AssertInternalTypeMigration(),
+            new CoversTagMigration(),
+            new ExpectedExceptionMigration(),
+            new GetMockMigration(),
+            new SetUpMigration(),
+            new TearDownMigration(),
+            new TestCaseMigration(),
+        ];
 
-        $expectedExceptionMigration = new ExpectedExceptionMigration();
-        $content = $expectedExceptionMigration->migrate($content);
+        $iterations = 3;
 
-        $getMockMigration = new GetMockMigration();
-        $content = $getMockMigration->migrate($content);
+        while (--$iterations) {
+            foreach ($migrations as $migration) {
+                if (version_compare($phpUnitVersion, $migration::PHPUNIT_VERSION_REQUIRED) >= 0) {
+                    echo $iterations . ' Run migration ' . get_class($migration), PHP_EOL;
+                    $content = $migration->migrate($content);
+                }
+            }
+        }
 
         // $content = preg_replace('/\$this\s*->\s*assert/', 'self::assert', $content);
-
-        $setUpMigration = new SetUpMigration();
-        $content = $setUpMigration->migrate($content);
-
-        $tearDownMigration = new TearDownMigration();
-        $content = $tearDownMigration->migrate($content);
-
-        $coversTagMigration = new CoversTagMigration();
-        $content = $coversTagMigration->migrate($content);
 
         // @expectedException
         // @expectedExceptionMessage
@@ -371,7 +377,7 @@ class Migrate extends Command
     {
         $return = [];
         foreach ($input as $key => $value) {
-            $key = strtolower($key);
+            $key = strtolower((string) $key);
 
             if (is_array($value)) {
                 $value = $this->lowercaseKeys($value);
