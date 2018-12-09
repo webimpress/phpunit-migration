@@ -1,0 +1,132 @@
+<?php
+
+namespace WebimpressTest\PHPUnitMigraton\Migration\TestAsset;
+
+use PHPUnit\Framework\TestCase;
+
+class AssertInternalTypeMigration extends TestCase
+{
+    public function testArray()
+    {
+        $this->assertIsArray($a, 'Message array');
+        $this->assertIsArray($b);
+
+        $this->assertIsNotArray($c, 'Message not array');
+        $this->assertIsNotArray($d);
+    }
+
+    public function testBool()
+    {
+        $this->assertIsBool($a, 'Message bool');
+        $this->assertIsBool($b, 'Message boolean');
+        $this->assertIsBool($c);
+        $this->assertIsBool($d);
+
+        $this->assertIsNotBool($e, 'Message not bool');
+        $this->assertIsNotBool($f, 'Message not boolean');
+        $this->assertIsNotBool($g);
+        $this->assertIsNotBool($h);
+    }
+
+    public function testFloat()
+    {
+        $this->assertIsFloat($a, 'Message double');
+        $this->assertIsFloat($b, 'Message float');
+        $this->assertIsFloat($c, 'Message real');
+        $this->assertIsFloat($d);
+        $this->assertIsFloat($e);
+        $this->assertIsFloat($f);
+
+        $this->assertIsNotFloat($g, 'Message not double');
+        $this->assertIsNotFloat($h, 'Message not float');
+        $this->assertIsNotFloat($i, 'Message not real');
+        $this->assertIsNotFloat($j);
+        $this->assertIsNotFloat($k);
+        $this->assertIsNotFloat($l);
+    }
+
+    public function testInt()
+    {
+        $this->assertIsInt($a, 'Message int');
+        $this->assertIsInt($b, 'Message integer');
+        $this->assertIsInt($c);
+        $this->assertIsInt($d);
+
+        $this->assertIsNotInt($e, 'Message not int');
+        $this->assertIsNotInt($f, 'Message not integer');
+        $this->assertIsNotInt($g);
+        $this->assertIsNotInt($h);
+    }
+
+    public function testNull()
+    {
+        $this->assertIsNull($a, 'Message null');
+        $this->assertIsNull($b);
+
+        $this->assertIsNotNull($c, 'Message not null');
+        $this->assertIsNotNull($d);
+    }
+
+    public function testNumeric()
+    {
+        $this->assertIsNumeric($a, 'Message numeric');
+        $this->assertIsNumeric($b);
+
+        $this->assertIsNotNumeric($c, 'Message not numeric');
+        $this->assertIsNotNumeric($d);
+    }
+
+    public function testObject()
+    {
+        $this->assertIsObject($a, 'Message object');
+        $this->assertIsObject($b);
+
+        $this->assertIsNotObject($c, 'Message not object');
+        $this->assertIsNotObject($d);
+    }
+
+    public function testResource()
+    {
+        $this->assertIsResource($a, 'Message resource');
+        $this->assertIsResource($b);
+
+        $this->assertIsNotResource($c, 'Message not resource');
+        $this->assertIsNotResource($d);
+    }
+
+    public function testString()
+    {
+        $this->assertIsString($a, 'Message string');
+        $this->assertIsString($b);
+
+        $this->assertIsNotString($c, 'Message not string');
+        $this->assertIsNotString($d);
+    }
+
+    public function testScalar()
+    {
+        $this->assertIsScalar($a, 'Message scalar');
+        $this->assertIsScalar($b);
+
+        $this->assertIsNotScalar($c, 'Message not scalar');
+        $this->assertIsNotScalar($d);
+    }
+
+    public function testCallable()
+    {
+        $this->assertIsCallable($a, 'Message callable');
+        $this->assertIsCallable($b);
+
+        $this->assertIsNotCallable($c, 'Message not callable');
+        $this->assertIsNotCallable($d);
+    }
+
+    public function testIterable()
+    {
+        $this->assertIsIterable($a, 'Message iterable');
+        $this->assertIsIterable($b);
+
+        $this->assertIsNotIterable($c, 'Message not iterable');
+        $this->assertIsNotIterable($d);
+    }
+}
