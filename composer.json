@@ -11,7 +11,7 @@
         "symfony/console": "^4.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^7.4.5",
+        "phpunit/phpunit": "^7.5",
         "webimpress/coding-standard": "dev-master"
     },
     "autoload": {
