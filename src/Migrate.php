@@ -327,6 +327,8 @@ class Migrate extends Command
             }
         }
 
+        sort($result);
+
         return $result;
     }
 
