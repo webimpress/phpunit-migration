@@ -128,5 +128,10 @@ class AssertInternalTypeMigration extends TestCase
 
         $this->assertIsNotIterable($c, 'Message not iterable');
         $this->assertIsNotIterable($d);
+
+        $this->assertIsNotIterable(
+            $variableName,
+            sprintf('Message something %s ... %d', $a, $b)
+        );
     }
 }

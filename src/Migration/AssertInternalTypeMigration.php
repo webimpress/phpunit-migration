@@ -7,8 +7,10 @@ namespace Webimpress\PHPUnitMigration\Migration;
 use Webimpress\PHPUnitMigration\Helper\ParamHelper;
 
 use function preg_match;
+use function preg_replace;
 use function sprintf;
 use function str_replace;
+use function strstr;
 use function strtolower;
 use function substr;
 use function trim;
@@ -43,13 +45,13 @@ class AssertInternalTypeMigration extends AbstractMigration
             $type = strtolower(substr(trim($p['expected']), 1, -1));
             $name = ucfirst($this->paramMapping[$type] ?? $type);
 
-            if ($p['message']) {
-                $replacement = sprintf('assertIs%s%s(%s, %s)', $not, $name, $p['actual'], $p['message']);
-            } else {
-                $replacement = sprintf('assertIs%s%s(%s)', $not, $name, $p['actual']);
-            }
+            $replacement = sprintf('assertIs%s%s(', $not, $name);
 
-            $content = str_replace($p['__function__'], $replacement, $content);
+            $content = str_replace(
+                preg_replace("/\n[ ]+$/", '', strstr($p['__function__'], $p['actual'], true)),
+                $replacement,
+                $content
+            );
         }
 
         return $content;

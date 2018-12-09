@@ -43,6 +43,7 @@ use function json_encode;
 use function preg_replace;
 use function realpath;
 use function round;
+use function sort;
 use function sprintf;
 use function strpos;
 use function strstr;
