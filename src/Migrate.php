@@ -66,7 +66,7 @@ class Migrate extends Command
     private $versionsJson;
 
     /** @var float */
-    private $php7max = 7.2;
+    private $php7max = 7.3;
 
     protected function configure()
     {
