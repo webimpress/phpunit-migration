@@ -44,7 +44,7 @@ class ExpectedExceptionMigration extends AbstractMigration
         }
 
         while (preg_match(
-            '/->\s*setExpectedExceptionRegexp\s*\(.+/is', //?\)\s*;/is',
+            '/->\s*setExpectedExceptionRegexp\s*\(.+/is',
             $content,
             $matches
         )) {

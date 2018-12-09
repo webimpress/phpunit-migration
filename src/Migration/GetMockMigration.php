@@ -21,7 +21,7 @@ class GetMockMigration extends AbstractMigration
         $paramHelper = new ParamHelper();
 
         while (preg_match(
-            '/\$this\s*->\s*getMock\s*\(.+/is', //?\)(\s*(\)|;))/is',
+            '/\$this\s*->\s*getMock\s*\(.+/is',
             $content,
             $matches
         )) {
