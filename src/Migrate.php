@@ -137,8 +137,8 @@ class Migrate extends Command
         $from = explode('.', $minPHPUnitVersion)[0];
         $to = explode('.', $newPHPUnitVersions[0])[0];
 
-        foreach ($this->fileIterator() as $file) {
-            if ($to >= 5) {
+        if ($to >= 5) {
+            foreach ($this->fileIterator() as $file) {
                 $content = $this->replaceTestCase($file, $newPHPUnitVersions[0], $iterations);
                 file_put_contents($file, $content);
             }
