@@ -4,7 +4,7 @@ namespace WebimpressTest\PHPUnitMigration\Migration\TestAsset;
 
 use PHPUnit\Framework\TestCase;
 
-class TearDownMigration extends TestCase
+class SetUpMigration extends TestCase
 {
     public function setUp()
     {
