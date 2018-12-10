@@ -1,0 +1,44 @@
+<?php
+
+namespace WebimpressTest\PHPUnitMigraton\Migration\TestAsset;
+
+use PHPUnit\Framework\TestCase;
+
+class CreateMockMigration extends TestCase
+{
+    public function testCreateMock1()
+    {
+        $mock = $this->createMock($originalClassName);
+    }
+
+    public function testCreateMock2()
+    {
+        $mock = $this->createMock($originalClassName);
+    }
+
+    public function testCreateMock3()
+    {
+        $mock = $this->createMock($originalClassName);
+    }
+
+    public function testCreateMock4()
+    {
+        $mock = $this->createMock($originalClassName);
+    }
+
+    public function testCreateMock5()
+    {
+        $mock = $this->createMock($originalClassName);
+    }
+
+    public function testCreateMock6()
+    {
+        $mock = $this
+            ->createMock($originalClassName);
+    }
+
+    public function testCreateMock7()
+    {
+        $mock = $this->createMock(OriginalClass::class)   ;
+    }
+}

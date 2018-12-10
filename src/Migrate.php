@@ -20,6 +20,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webimpress\PHPUnitMigration\Migration\AssertInternalTypeMigration;
 use Webimpress\PHPUnitMigration\Migration\CoversTagMigration;
+use Webimpress\PHPUnitMigration\Migration\CreateMockMigration;
 use Webimpress\PHPUnitMigration\Migration\ExpectedExceptionMigration;
 use Webimpress\PHPUnitMigration\Migration\GetMockMigration;
 use Webimpress\PHPUnitMigration\Migration\SetUpMigration;
@@ -226,6 +227,7 @@ class Migrate extends Command
         $migrations = [
             new AssertInternalTypeMigration(),
             new CoversTagMigration(),
+            new CreateMockMigration(),
             new ExpectedExceptionMigration(),
             new GetMockMigration(),
             new SetUpMigration(),
