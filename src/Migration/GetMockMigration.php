@@ -16,6 +16,8 @@ use function substr_count;
 
 class GetMockMigration extends AbstractMigration
 {
+    public const PHPUNIT_VERSION_REQUIRED = '5.4';
+
     public function migrate(string $content) : string
     {
         $paramHelper = new ParamHelper();
