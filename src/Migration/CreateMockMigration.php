@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Webimpress\PHPUnitMigration\Migration;
 
+use function implode;
+use function preg_replace;
+
 class CreateMockMigration extends AbstractMigration
 {
     public const PHPUNIT_VERSION_REQUIRED = '5.4';
