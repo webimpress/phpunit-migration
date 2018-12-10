@@ -35,12 +35,12 @@ $ ../path/to/phpunit-migration/bin/phpunit-migration migrate
 6. `assertInternalType` and `assertNotInternalType` to more specific assertion method (PHPUnit 7.5+),
 7. `getMock` to `getMockBuilder` with other required function calls (PHPUnit 5.4+),
 8. `getMockBuilder(...)->...->getMock()` to `createMock(...)` if possible (PHPUnit 5.4+),
-9. TODO: `getMockBuilder(...)->...->setMethods(...)->getMock()` to `createPartialMock(...)` if possible
-  (PHPUnit 5.5.3+),
-10. TODO: `assertContains()` and `assertNotContains()` on `string` haystack to more specific assertion method
-  (PHPUnit 7.5+),
-11. TODO: `assertEquals()` and `assertNotEquals()` with `$delta`, `$maxDepth`, `$canonicalize` and `$ignoreCase`
+9. `assertEquals()` and `assertNotEquals()` with `$delta`, `$maxDepth`, `$canonicalize` and `$ignoreCase`
   parameters to more specific assertion method (PHPUnit 7.5),
+10. TODO: `getMockBuilder(...)->...->setMethods(...)->getMock()` to `createPartialMock(...)` if possible
+  (PHPUnit 5.5.3+),
+11. TODO: `assertContains()` and `assertNotContains()` on `string` haystack to more specific assertion method
+  (PHPUnit 7.5+),
 12. TODO: `$this->assert` to `self::assert`.
 
 ## What the tool is NOT doing?

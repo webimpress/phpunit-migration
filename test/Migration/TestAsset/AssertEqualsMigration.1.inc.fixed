@@ -1,0 +1,56 @@
+<?php
+
+namespace WebimpressTest\PHPUnitMigraton\Migration\TestAsset;
+
+use PHPUnit\Framework\TestCase;
+
+class AssertEqualsMigration extends TestCase
+{
+    public function testNotChanged()
+    {
+        $this->assertEquals($a, $b);
+        $this->assertEquals($a, $b);
+        $this->assertEquals($a, $b, 'Message equals');
+        $this->assertEquals($a, $b, 'Message equals default', 0.0, 10, false, false);
+        $this->assertEquals($a, $b, 'Message equals maxDepth', 0.0, 13, false, false);
+
+        $this->assertNotEquals($a, $b);
+        $this->assertNotEquals($a, $b);
+        $this->assertNotEquals($a, $b, 'Message not equals');
+        $this->assertNotEquals($a, $b, 'Message not equals default', 0.0, 10, false, false);
+        $this->assertNotEquals($a, $b, 'Message not equals maxDepth', 0.0, 13, false, false);
+    }
+
+    public function testAssertEqualsWithDelta()
+    {
+        $this->assertEqualsWithDelta($a, $b, 0.1, 'Message equals with delta');
+        $this->assertEqualsWithDelta($a, $b, 0.2);
+        $this->assertEqualsWithDelta($a, $b, 0.3, 'Message equals with delta');
+
+        $this->assertNotEqualsWithDelta($a, $b, 0.1, 'Message not equals with delta');
+        $this->assertNotEqualsWithDelta($a, $b, 0.2);
+        $this->assertNotEqualsWithDelta($a, $b, 0.3, 'Message not equals with delta');
+    }
+
+    public function testAssertEqualsCanonicalizing()
+    {
+        $this->assertEqualsCanonicalizing($a, $b, 'Message equals canonicalizing');
+        $this->assertEqualsCanonicalizing($a, $b);
+        $this->assertEqualsCanonicalizing($a, $b, 'Message equals canonicalizing');
+
+        $this->assertNotEqualsCanonicalizing($a, $b, 'Message not equals canonicalizing');
+        $this->assertNotEqualsCanonicalizing($a, $b);
+        $this->assertNotEqualsCanonicalizing($a, $b, 'Message not equals canonicalizing');
+    }
+
+    public function testAssertEqualsIgnoringCase()
+    {
+        $this->assertEqualsIgnoringCase($a, $b, 'Message equals ignoring case');
+        $this->assertEqualsIgnoringCase($a, $b);
+        $this->assertEqualsIgnoringCase($a, $b, 'Message equals ignoring case');
+
+        $this->assertNotEqualsIgnoringCase($a, $b, 'Message not equals ignoring case');
+        $this->assertNotEqualsIgnoringCase($a, $b);
+        $this->assertNotEqualsIgnoringCase($a, $b, 'Message not equals ignoring case');
+    }
+}
