@@ -1,0 +1,30 @@
+<?php
+
+namespace WebimpressTest\PHPUnitMigration\Migration\TestAsset;
+
+use PHPUnit\Framework\TestCase;
+
+class VoidReturnTypeMigration extends TestCase
+{
+    public function setUp() : void
+    {
+    }
+
+    protected function tearDown() : void
+    {
+    }
+
+    public static function setUpBeforeClass() : void
+    {
+    }
+
+    public static function tearDownAfterClass() : void
+    {
+    }
+
+    protected function assertPreConditions() : void {}
+
+    protected function assertPostConditions() : void {}
+
+    protected function onNotSuccessfulTest(\Throwable $t) : void {}
+}

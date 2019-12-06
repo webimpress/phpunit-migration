@@ -26,6 +26,7 @@ use Webimpress\PHPUnitMigration\Migration\GetMockMigration;
 use Webimpress\PHPUnitMigration\Migration\SetUpMigration;
 use Webimpress\PHPUnitMigration\Migration\TearDownMigration;
 use Webimpress\PHPUnitMigration\Migration\TestCaseMigration;
+use Webimpress\PHPUnitMigration\Migration\VoidReturnTypeMigration;
 
 use function array_reverse;
 use function exec;
@@ -50,7 +51,6 @@ use function strpos;
 use function strstr;
 use function strtolower;
 use function usort;
-use function version_compare;
 
 use const JSON_PRETTY_PRINT;
 use const JSON_UNESCAPED_SLASHES;
@@ -68,7 +68,7 @@ class Migrate extends Command
     private $versionsJson;
 
     /** @var float */
-    private $php7max = 7.3;
+    private $php7max = 7.4;
 
     protected function configure()
     {
@@ -132,6 +132,7 @@ class Migrate extends Command
 
         $iterations = (int) $input->getArgument('iterations');
 
+        $phpRequired = $this->getPHP5Version($php) ?? $this->getPHP7Version($php);
         $minPHPUnitVersion = $this->findMinimumPHPUnitVersion($phpunit);
         $newPHPUnitVersions = $this->findPHPUnitVersion($php);
 
@@ -140,7 +141,7 @@ class Migrate extends Command
 
         if ($to >= 5) {
             foreach ($this->fileIterator() as $file) {
-                $content = $this->replaceTestCase($file, $newPHPUnitVersions[0], $iterations);
+                $content = $this->replaceTestCase($file, $newPHPUnitVersions[0], $phpRequired, $iterations);
                 file_put_contents($file, $content);
             }
         }
@@ -220,8 +221,12 @@ class Migrate extends Command
         }
     }
 
-    private function replaceTestCase(string $fileName, string $phpUnitVersion, int $iterations) : string
-    {
+    private function replaceTestCase(
+        string $fileName,
+        string $phpUnitVersion,
+        ?string $phpVersion,
+        int $iterations
+    ) : string {
         $content = file_get_contents($fileName);
 
         $migrations = [
@@ -233,11 +238,12 @@ class Migrate extends Command
             new SetUpMigration(),
             new TearDownMigration(),
             new TestCaseMigration(),
+            new VoidReturnTypeMigration(),
         ];
 
         for ($i = 1; $i <= $iterations; ++$i) {
             foreach ($migrations as $migration) {
-                if (version_compare($phpUnitVersion, $migration::PHPUNIT_VERSION_REQUIRED) >= 0) {
+                if ($migration->canBeExecuted($phpUnitVersion, $phpVersion)) {
                     echo sprintf('[%d] Run migration %s on file %s', $i, get_class($migration), $fileName), PHP_EOL;
                     $content = $migration->migrate($content);
                 }
