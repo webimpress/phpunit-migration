@@ -118,16 +118,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v5.0.3",
+            "version": "v5.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "345ab6ecb456b5147ea3b3271d7f1f00aadfd257"
+                "reference": "91c294166c38d8c0858a86fad76d8c14dc1144c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/345ab6ecb456b5147ea3b3271d7f1f00aadfd257",
-                "reference": "345ab6ecb456b5147ea3b3271d7f1f00aadfd257",
+                "url": "https://api.github.com/repos/symfony/console/zipball/91c294166c38d8c0858a86fad76d8c14dc1144c8",
+                "reference": "91c294166c38d8c0858a86fad76d8c14dc1144c8",
                 "shasum": ""
             },
             "require": {
@@ -190,7 +190,7 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2020-01-19T11:13:19+00:00"
+            "time": "2020-01-25T15:56:29+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -1894,12 +1894,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/webimpress/coding-standard.git",
-                "reference": "98dcc95b81a302130455f369317c865de97f2a2f"
+                "reference": "0ed287fe3c5233323eefccced88b71355ff574fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webimpress/coding-standard/zipball/98dcc95b81a302130455f369317c865de97f2a2f",
-                "reference": "98dcc95b81a302130455f369317c865de97f2a2f",
+                "url": "https://api.github.com/repos/webimpress/coding-standard/zipball/0ed287fe3c5233323eefccced88b71355ff574fe",
+                "reference": "0ed287fe3c5233323eefccced88b71355ff574fe",
                 "shasum": ""
             },
             "require": {
@@ -1907,7 +1907,7 @@
                 "squizlabs/php_codesniffer": "^3.5.3"
             },
             "require-dev": {
-                "phpunit/phpunit": "^7.5.18 || ^8.5.1"
+                "phpunit/phpunit": "^7.5.20 || ^8.5.2"
             },
             "type": "phpcodesniffer-standard",
             "extra": {
@@ -1931,7 +1931,7 @@
                 "psr-12",
                 "webimpress"
             ],
-            "time": "2019-12-27T15:40:49+00:00"
+            "time": "2020-01-25T13:08:29+00:00"
         },
         {
             "name": "webmozart/assert",
