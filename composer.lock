@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f63076fb4860e98ffe671e325d9f65f9",
+    "content-hash": "7c039d05d5221b9b2ce02ca8cc273d7b",
     "packages": [
         {
             "name": "composer/semver",
@@ -1102,16 +1102,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "9.1.0",
+            "version": "9.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "ef2af937ce574f215afb6dca37d583cb2964bad9"
+                "reference": "848f6521c906500e66229668768576d35de0227e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ef2af937ce574f215afb6dca37d583cb2964bad9",
-                "reference": "ef2af937ce574f215afb6dca37d583cb2964bad9",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/848f6521c906500e66229668768576d35de0227e",
+                "reference": "848f6521c906500e66229668768576d35de0227e",
                 "shasum": ""
             },
             "require": {
@@ -1185,7 +1185,17 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2020-04-03T05:23:04+00:00"
+            "funding": [
+                {
+                    "url": "https://phpunit.de/donate.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/sebastianbergmann",
+                    "type": "github"
+                }
+            ],
+            "time": "2020-04-03T14:40:04+00:00"
         },
         {
             "name": "sebastian/code-unit",
@@ -2104,5 +2114,6 @@
     "platform": {
         "php": "^7.1"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
