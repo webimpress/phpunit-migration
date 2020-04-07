@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7c039d05d5221b9b2ce02ca8cc273d7b",
+    "content-hash": "2f985374c45f3b2567a2416bdd64552e",
     "packages": [
         {
             "name": "composer/semver",
@@ -2012,16 +2012,16 @@
         },
         {
             "name": "webimpress/coding-standard",
-            "version": "dev-master",
+            "version": "1.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webimpress/coding-standard.git",
-                "reference": "a076fd1349c0c8158741c15cfc8d827df0a911b3"
+                "reference": "f201b55632c933cd80abb15dc7caa21f7c733215"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webimpress/coding-standard/zipball/a076fd1349c0c8158741c15cfc8d827df0a911b3",
-                "reference": "a076fd1349c0c8158741c15cfc8d827df0a911b3",
+                "url": "https://api.github.com/repos/webimpress/coding-standard/zipball/f201b55632c933cd80abb15dc7caa21f7c733215",
+                "reference": "f201b55632c933cd80abb15dc7caa21f7c733215",
                 "shasum": ""
             },
             "require": {
@@ -2029,7 +2029,7 @@
                 "squizlabs/php_codesniffer": "^3.5.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^7.5.20 || ^8.5.2 || ^9.0.1"
+                "phpunit/phpunit": "^7.5.20 || ^8.5.3 || ^9.1.1"
             },
             "type": "phpcodesniffer-standard",
             "extra": {
@@ -2053,7 +2053,13 @@
                 "psr-12",
                 "webimpress"
             ],
-            "time": "2020-02-20T20:50:05+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/michalbundyra",
+                    "type": "github"
+                }
+            ],
+            "time": "2020-04-06T18:45:57+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -2106,9 +2112,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "webimpress/coding-standard": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

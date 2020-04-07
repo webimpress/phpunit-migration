@@ -120,28 +120,28 @@ class Migrate extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if (! $phpunit = $this->getPHPUnitVersion()) {
+        if (! $phpunit = $this->getPhpunitVersion()) {
             $output->writeln('<error>Cannot detect PHPUnit version in your composer.json</error>');
             return 1;
         }
 
-        if (! $php = $this->getPHPVersion()) {
+        if (! $php = $this->getPhpVersion()) {
             $output->writeln('<error>Cannot detect PHP version in your composer.json</error>');
             return 1;
         }
 
         $iterations = (int) $input->getArgument('iterations');
 
-        $phpRequired = $this->getPHP5Version($php) ?? $this->getPHP7Version($php);
-        $minPHPUnitVersion = $this->findMinimumPHPUnitVersion($phpunit);
-        $newPHPUnitVersions = $this->findPHPUnitVersion($php);
+        $phpRequired = $this->getPhp5Version($php) ?? $this->getPhp7Version($php);
+        $minPhpunitVersion = $this->findMinimumPhpunitVersion($phpunit);
+        $newPhpunitVersions = $this->findPhpunitVersion($php);
 
-        $from = explode('.', $minPHPUnitVersion)[0];
-        $to = explode('.', $newPHPUnitVersions[0])[0];
+        $from = explode('.', $minPhpunitVersion)[0];
+        $to = explode('.', $newPhpunitVersions[0])[0];
 
         if ($to >= 5) {
             foreach ($this->fileIterator() as $file) {
-                $content = $this->replaceTestCase($file, $newPHPUnitVersions[0], $phpRequired, $iterations);
+                $content = $this->replaceTestCase($file, $newPhpunitVersions[0], $phpRequired, $iterations);
                 file_put_contents($file, $content);
             }
         }
@@ -149,7 +149,7 @@ class Migrate extends Command
         $composer = json_decode(file_get_contents('composer.json'), true);
         foreach ($composer['require-dev'] as $key => &$value) {
             if (strtolower($key) === 'phpunit/phpunit') {
-                $value = '^' . implode(' || ^', $newPHPUnitVersions);
+                $value = '^' . implode(' || ^', $newPhpunitVersions);
                 break;
             }
         }
@@ -166,7 +166,7 @@ class Migrate extends Command
 
         $output->writeln('PHP Version: ' . $php);
         $output->writeln('PHPUnit Version: ' . $phpunit . ' : ' . $from . '->' . $to);
-        $output->writeln('Versions: ^' . implode(' || ^', $newPHPUnitVersions));
+        $output->writeln('Versions: ^' . implode(' || ^', $newPhpunitVersions));
 
         // replace getMock -> ... ?
         // replace $this->assert* to self::assert*
@@ -262,7 +262,7 @@ class Migrate extends Command
     /**
      * @throws RuntimeException
      */
-    private function getPHP5Version(string $php) : ?string
+    private function getPhp5Version(string $php) : ?string
     {
         if (Semver::satisfies('5.5', $php)) {
             throw new RuntimeException('Unsupported PHP Version');
@@ -275,7 +275,7 @@ class Migrate extends Command
         return null;
     }
 
-    private function getPHP7Version(string $php) : ?string
+    private function getPhp7Version(string $php) : ?string
     {
         $max = round($this->php7max * 10);
         for ($i = 70; $i <= $max; ++$i) {
@@ -288,7 +288,7 @@ class Migrate extends Command
         return null;
     }
 
-    private function getPHPUnitVersions() : array
+    private function getPhpunitVersions() : array
     {
         if ($this->versions) {
             return $this->versions;
@@ -312,12 +312,12 @@ class Migrate extends Command
         return $this->versions;
     }
 
-    private function findPHPUnitVersion(string $php) : array
+    private function findPhpunitVersion(string $php) : array
     {
-        $versions = $this->getPHPUnitVersions();
+        $versions = $this->getPhpunitVersions();
 
-        $php5 = $this->getPHP5Version($php);
-        $php7min = $this->getPHP7Version($php);
+        $php5 = $this->getPhp5Version($php);
+        $php7min = $this->getPhp7Version($php);
         $php7 = $php7min ? $this->php7max : null;
 
         $result = [];
@@ -354,9 +354,9 @@ class Migrate extends Command
         return $result;
     }
 
-    private function findMinimumPHPUnitVersion(string $current) : ?string
+    private function findMinimumPhpunitVersion(string $current) : ?string
     {
-        $versions = array_reverse($this->getPHPUnitVersions());
+        $versions = array_reverse($this->getPhpunitVersions());
 
         foreach ($versions as $version) {
             if (Semver::satisfies($version, $current)) {
@@ -372,14 +372,14 @@ class Migrate extends Command
         return Comparator::lessThan($a, $b) ? 1 : -1;
     }
 
-    private function getPHPVersion() : ?string
+    private function getPhpVersion() : ?string
     {
         $composer = $this->getComposerJson();
 
         return $composer['require']['php'] ?? null;
     }
 
-    private function getPHPUnitVersion() : ?string
+    private function getPhpunitVersion() : ?string
     {
         $composer = $this->getComposerJson();
 

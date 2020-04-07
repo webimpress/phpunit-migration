@@ -38,7 +38,13 @@ class AssertEqualsMigration extends AbstractMigration
             $not = $matches[2] ?? '';
 
             if ($p['delta'] && $p['delta'] !== '0.0') {
-                $replacement = sprintf('assert%sEqualsWithDelta(%s, %s, %s', $not, $p['expected'], $p['actual'], $p['delta']);
+                $replacement = sprintf(
+                    'assert%sEqualsWithDelta(%s, %s, %s',
+                    $not,
+                    $p['expected'],
+                    $p['actual'],
+                    $p['delta']
+                );
             } elseif ($p['canonicalize'] && strtolower($p['canonicalize']) !== 'false') {
                 $replacement = sprintf('assert%sEqualsCanonicalizing(%s, %s', $not, $p['expected'], $p['actual']);
             } elseif ($p['ignoreCase'] && strtolower($p['ignoreCase']) !== 'false') {
