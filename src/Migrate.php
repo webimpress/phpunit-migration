@@ -23,6 +23,7 @@ use Webimpress\PHPUnitMigration\Migration\CoversTagMigration;
 use Webimpress\PHPUnitMigration\Migration\CreateMockMigration;
 use Webimpress\PHPUnitMigration\Migration\ExpectedExceptionMigration;
 use Webimpress\PHPUnitMigration\Migration\GetMockMigration;
+use Webimpress\PHPUnitMigration\Migration\MoreReadableAssertionNameMigration;
 use Webimpress\PHPUnitMigration\Migration\SetUpMigration;
 use Webimpress\PHPUnitMigration\Migration\TearDownMigration;
 use Webimpress\PHPUnitMigration\Migration\TestCaseMigration;
@@ -239,6 +240,7 @@ class Migrate extends Command
             new TearDownMigration(),
             new TestCaseMigration(),
             new VoidReturnTypeMigration(),
+            new MoreReadableAssertionNameMigration(),
         ];
 
         for ($i = 1; $i <= $iterations; ++$i) {
