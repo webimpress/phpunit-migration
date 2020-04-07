@@ -1,0 +1,36 @@
+<?php
+
+namespace WebimpressTest\PHPUnitMigration\Migration\TestAsset;
+
+use PHPUnit\Framework\TestCase;
+
+class MoreReadableAssertionNameMigration extends TestCase
+{
+    public function testBetterAssertionNamesSelf()
+    {
+        self::assertIsNotReadable(__FILE__);
+        self::assertIsNotWritable(__FILE__);
+        self::assertDirectoryDoesNotExist(__DIR__);
+        self::assertDirectoryIsNotReadable(__DIR__);
+        self::assertDirectoryIsNotWritable(__DIR__);
+        self::assertFileDoesNotExist(__FILE__);
+        self::assertFileIsNotReadable(__FILE__);
+        self::assertFileIsNotWritable(__FILE__);
+        self::assertMatchesRegularExpression('/^xyz$/');
+        self::assertDoesNotMatchRegularExpression('/^xyz$/');
+    }
+
+    public function testBetterAssertionNamesThis()
+    {
+        $this->assertIsNotReadable(__FILE__);
+        $this->assertIsNotWritable(__FILE__);
+        $this->assertDirectoryDoesNotExist(__DIR__);
+        $this->assertDirectoryIsNotReadable(__DIR__);
+        $this->assertDirectoryIsNotWritable(__DIR__);
+        $this->assertFileDoesNotExist(__FILE__);
+        $this->assertFileIsNotReadable(__FILE__);
+        $this->assertFileIsNotWritable(__FILE__);
+        $this->assertMatchesRegularExpression('/^xyz$/');
+        $this->assertDoesNotMatchRegularExpression('/^xyz$/');
+    }
+}

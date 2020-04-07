@@ -41,11 +41,23 @@ $ ../path/to/phpunit-migration/bin/phpunit-migration migrate
   `setUp()`, `tearDown()`, `setUpBeforeClass()`, `tearDownAfterClass()`,
   `assertPreConditions()`, `assertPostConditions()`, `onNotSuccessfulTest(\Throwable $th)` (PHPUnit 8.0+),
 11. `expectExceptionMessageRegExp` to `expectExceptionMessageMatches` (PHPUnit 8.4+),
-12. TODO: `getMockBuilder(...)->...->setMethods(...)->getMock()` to `createPartialMock(...)` if possible
+12. use new (more readable) assertion names:
+  - `assertNotIsReadable` replaced by `assertIsNotReadable'`,
+  - `assertNotIsWritable` replaced by `assertIsNotWritable'`,
+  - `assertDirectoryNotExists` replaced by `assertDirectoryDoesNotExist'`,
+  - `assertDirectoryNotIsReadable` replaced by `assertDirectoryIsNotReadable'`,
+  - `assertDirectoryNotIsWritable` replaced by `assertDirectoryIsNotWritable'`,
+  - `assertFileNotExists` replaced by `assertFileDoesNotExist'`,
+  - `assertFileNotIsReadable` replaced by `assertFileIsNotReadable'`,
+  - `assertFileNotIsWritable` replaced by `assertFileIsNotWritable'`,
+  - `assertRegExp` replaced by `assertMatchesRegularExpression'`,
+  - `assertNotRegExp` replaced by `assertDoesNotMatchRegularExpression'`.
+  (PHPUnit 9.1+),
+13. TODO: `getMockBuilder(...)->...->setMethods(...)->getMock()` to `createPartialMock(...)` if possible
   (PHPUnit 5.5.3+),
-13. TODO: `assertContains()` and `assertNotContains()` on `string` haystack to more specific assertion method
+14. TODO: `assertContains()` and `assertNotContains()` on `string` haystack to more specific assertion method
   (PHPUnit 7.5+),
-14. TODO: `$this->assert` to `self::assert`.
+15. TODO: `$this->assert` to `self::assert`.
 
 ## What the tool is NOT doing?
 
