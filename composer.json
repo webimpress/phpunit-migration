@@ -8,7 +8,7 @@
     "require": {
         "php": "^7.1",
         "ext-json": "*",
-        "composer/semver": "^1.5.1 || ^2.0",
+        "composer/semver": "^3.0.0",
         "symfony/console": "^4.4.7 || ^5.0.7"
     },
     "require-dev": {
