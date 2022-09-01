@@ -69,7 +69,7 @@ class Migrate extends Command
     private $versionsJson;
 
     /** @var float */
-    private $php7max = 7.4;
+    private $phpMax = 8.1;
 
     protected function configure()
     {
@@ -133,7 +133,7 @@ class Migrate extends Command
 
         $iterations = (int) $input->getArgument('iterations');
 
-        $phpRequired = $this->getPhp5Version($php) ?? $this->getPhp7Version($php);
+        $phpRequired = $this->getPhp5Version($php) ?? $this->getPhpNewVersion($php);
         $minPhpunitVersion = $this->findMinimumPhpunitVersion($phpunit);
         $newPhpunitVersions = $this->findPhpunitVersion($php);
 
@@ -277,9 +277,9 @@ class Migrate extends Command
         return null;
     }
 
-    private function getPhp7Version(string $php) : ?string
+    private function getPhpNewVersion(string $php) : ?string
     {
-        $max = round($this->php7max * 10);
+        $max = round($this->phpMax * 10);
         for ($i = 70; $i <= $max; ++$i) {
             $v = sprintf('%.1f', 0.1 * $i);
             if (Semver::satisfies($v, $php)) {
@@ -316,30 +316,31 @@ class Migrate extends Command
 
     private function findPhpunitVersion(string $php) : array
     {
+		echo $php . "\n";
         $versions = $this->getPhpunitVersions();
 
-        $php5 = $this->getPhp5Version($php);
-        $php7min = $this->getPhp7Version($php);
-        $php7 = $php7min ? $this->php7max : null;
+        $phpLegacy = $this->getPhp5Version($php);
+        $phpNewMin = $this->getPhpNewVersion($php);
+        $phpNew = $phpNewMin ? $this->phpMax : null;
 
         $result = [];
         foreach ($versions as $version) {
             $phpVer = $this->versionsJson['packages']['phpunit/phpunit'][$version]['require']['php'] ?? null;
 
-            if ($php7 && Semver::satisfies($php7, $phpVer)) {
+            if ($phpNew && Semver::satisfies($phpNew, $phpVer)) {
                 $result[] = preg_replace('/\.0$/', '', $version);
-                $php7 = sprintf('%.1f', $php7 - 0.1);
-                if ($php7 < $php7min) {
-                    $php7 = null;
+                $phpNew = sprintf('%.1f', $phpNew - 0.1);
+                if ($phpNew < $phpNewMin) {
+                    $phpNew = null;
                 }
             }
 
-            if ($php5 && Semver::satisfies($php5, $phpVer)) {
+            if ($phpLegacy && Semver::satisfies($phpLegacy, $phpVer)) {
                 $result[] = preg_replace('/\.0$/', '', $version);
-                $php5 = null;
+                $phpLegacy = null;
             }
 
-            if (! $php5 && ! $php7) {
+            if (! $phpLegacy && ! $phpNew) {
                 break;
             }
         }
